@@ -67,6 +67,10 @@
 	$ git push origin v1.0 # 推送标签到远程仓库
 	$ git push origin --tags # 一次性推送全部尚未推送到远程的本地标签
 	$ git push origin :refs/tags/v0.9＃　远程删除某标签
+
+## git pull时出现冲突 放弃本地修改，使远程库内容强制覆盖本地代码
+	$ git fetch --all //只是下载代码到本地，不进行合并操作
+	$ git reset --hard origin/master  //把HEAD指向最新下载的版本
 	
 	
 	

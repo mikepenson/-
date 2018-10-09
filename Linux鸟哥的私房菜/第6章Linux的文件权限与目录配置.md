@@ -30,6 +30,16 @@ dr-xr-xr-x. 18 root root     4096 3月  16 2018 ..
 * chown（change owner）
 * chmod（change mode） 
 
+### 6.2.3 目录与文件的权限意义
+* 对文件来说，权限的效能为：
+	- r： 可读取此文件的实际内容，如读取文本文件的文字内容
+	- w： 可以编辑、新增或者修改该文件的内容（但不包含删除该文件）
+	- x： 该文件具有可以被系统执行的权限
+* 对目录来说，权限的属能为
+	- r： read contents in directory
+	- w： modify content of directory
+	- x： access directory	
+
 ### 6.2.4 Linux文件种类与拓展名
 #### 文件种类
 * 一般文件（-）
@@ -77,18 +87,64 @@ FHS仅定义了如下三层目录应该放置什么数据
 	- `/home`: 系统默认用户主文件夹
 	- `/lib`: 开机使用的函数库，以及在/bin或/sbin下面的命令会调用的函数库
 	- `/media`: 放置可删除的设备
-	- `mnt`: 挂载额外设备
+	- `/mnt`: 挂载额外设备
 	- `/opt`: 第三方软件放置
 	- `/root`: 系统管理员的主文件夹
-	- `sbin`: 放置开机需要的**开机、修复、还原系统所需要的命令**。本机自行安装的软件产生的系统执行文件（system binary），则放置在`/usr/local/sbin`。
+	- `/sbin`: 放置开机需要的**开机、修复、还原系统所需要的命令**。本机自行安装的软件产生的系统执行文件（system binary），则放置在`/usr/local/sbin`。
 	- `/srv`: 一些网络服务启动之后，所需要取用的数据目录。如WWW、FTP
 	- `/tmp`: 一般用户或者是正在执行的程序暂时放置文件的地方
 	- */lost+found : 使用ext2/ext3产生的目录， 当文件系统发生错误时，将一些丢失的片段放置到这个目录下*
 	- */proc : 虚拟文件系统，其放置数据都在内存中，不占硬盘空间， 如系统内核、进程（process）、外部设备的状态以及网络状态*
 	- */sys : 虚拟文件系统，不占硬盘空间， 也是记录内核相关的信息，如目前已加载的内核模块与内核检测到的硬件设备信息*
-* /usr(UNIX software resource)： 与软件安装/执行有关
-* /var(variable)： 与系统运作有关
 
+*斜体文字*代表FHS针对根目录定义标准之外的目录
+	
+* /usr(UNIX software resource)： 与软件安装/执行有关。**安装时会占用较大硬盘容量的目录**，UNIX Software Resource的缩写，即”UNIX操作系统软件资源“所放置的目录，而不是用户的数据，里面放置的数据属于**可分享与不可变动**。*FHS建议所有软件开发者应该将他们的数据合理地放置到这个目录下的子目录，而不要自行创建该软件自己独立的目录*。
+	- `/usr/X11R6/`: 为X Window系统重要数据所放置的目录，最后X版本为第11版，且改版的第6次释出之意
+	- `/usr/bin/`: 用户命令
+	- `/usr/include`: C/C++等程序语言的头文件（header）与包含文件（include）放置的地方
+	- `/usr/lib/`: 各应用软件的函数库、目标文件（object file），以及不被一般用户惯用的执行文件或脚本（script）。X86_64系统，	`/usr/lib/`
+	- `/usr/local/`: 系统管理员在本机自行安装自己下载的软件（非distribution默认提供者）的目录。如当前的distribution提供的软件较旧，可以在不删除下将新版软件安装在`/usr/local/`下
+	- `/usr/sbin/`: 非系统正常运行所需要的系统命令。如某些网络服务器软件的服务命令（daemon）
+	- `/usr/share/`: 放置共享文件的地方
+		* `/usr/share/man`: 在线帮助文档
+		* `/usr/share/doc`: 软件杂项的软件说明
+		* `/usr/share/zoneinfo`: 时区有关的时区文件
+	- `/usr/src/`: 一般源码目录。linux内核源码建议放置在`/usr/src/linux/`目录下
+* /var(variable)： 与系统运作有关。`/var`目录主要针对常态性变动的文件，包含缓存（cache）、登录文件（log file）以及某些软件运行所产生的文件，包含程序文件（lock file，run file），或者如MySQL数据库的文件等。**在系统运行后才会渐渐占用硬盘容量的目录**。
+	- `/var/cache/`: 应用程勋运行过程产生的一些暂存软件
+	- `/var/lib/`: 程序执行过程需要的**数据文件**放置地方。MySQL： `/var/lib/mysql/`, rpm： `/var/lib/rpm`
+	- `/var/lock/`: 设备或者文件资源锁的目录
+	- `/var/log/`: 登录文件目录。`/var/log/messages, /var/log/wtmp（记录登录者的信息)`
+	- `/var/mail/`: 个人电子邮件信箱的目录，与`/var/spool/mail/`目录互为连接文件
+	- `/var/run/`: 一些程序或者服务启动后PID放置的目录
+	- `/var/spool/`: 放置一些队列数据，即排队等待其他程序使用的数据。一般这些数据被使用后通常会被删除。
+
+有五个目录不可与根目录放在不同的分区，分别为: `/etc /bin /lib /dev /sbin`
+
+### 目录树（directory tree）
+所有文件与目录都是由根目录开始的，然后一个一个分支下去，有点像树形状。也称这种目录配置方式为”目录树（directory tree）“。
+
+* 目录树的起点为根目录（/, root）
+* 每一个目录不只能使用本地的文件系统，还可以使用网络上的文件系统。如利用Network File System（NFS）服务器挂载某特定目录等。
+* 每一个文件在此目录树下的文件名（包含完整路径）都是独一无二
+
+Centos根目录的目录架构图
+
+![](imgs/6-4.png)	
+
+### 绝对路径与相对路径
+* 绝对路径： 由根目录开始写起的文件名或者目录名称
+* 相对路径： 相对目前路径的文件名写法。
+
+### Centos的查看
+查看distribution使用的那个linux标准（Linux Standard Base)
+
+```
+➜  ~ uname -r
+3.10.0-693.2.2.el7.x86_64
+➜  ~ lsb-release -a
+```
 
     
     
